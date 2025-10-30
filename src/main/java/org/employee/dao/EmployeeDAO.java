@@ -42,7 +42,7 @@ public class EmployeeDAO {
 
     public List<Employee> getAllEmployees() {
         List<Employee> employees = new ArrayList<>();
-        String sql = "SELECT * FROM employees";
+        String sql = "SELECT * FROM employee";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -56,7 +56,7 @@ public class EmployeeDAO {
                 emp.setPhone(rs.getString("phone"));
                 emp.setDepartment(rs.getString("department"));
                 emp.setSalary(rs.getDouble("salary"));
-                emp.setJoining_date(rs.getDate("hire_date"));
+                emp.setJoining_date(rs.getDate("joining_date"));
                 emp.setStatus(rs.getString("status"));
                 emp.setCreated_at(rs.getTimestamp("created_at"));
                 emp.setUpdated_at(rs.getTimestamp("updated_at"));
@@ -73,8 +73,8 @@ public class EmployeeDAO {
 
 
     public boolean updateEmployee(Employee emp) {
-        String sql = "UPDATE employees SET first_name=?, last_name=?, email=?, phone=?, department=?, " +
-                "salary=?, hire_date=?, status=? WHERE id=?";
+        String sql = "UPDATE employee SET first_name=?, last_name=?, email=?, phone=?, department=?, " +
+                "salary=?, joining_date=?, status=? WHERE id=?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, emp.getFirst_name());
@@ -101,18 +101,60 @@ public class EmployeeDAO {
     }
 
     public boolean deleteEmployee(int id) {
-        String sql = "DELETE FROM employees WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-            int rowsDeleted = stmt.executeUpdate();
-            return rowsDeleted > 0;
-
+        String sql = "DELETE FROM employee WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int rowsDeleted = ps.executeUpdate();
+            if (rowsDeleted > 0) {
+                System.out.println("✅ Employee deleted successfully (ID: " + id + ")");
+                return true;
+            } else {
+                System.out.println("⚠️ No employee found with ID: " + id);
+                return false;
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("❌ Error deleting employee: " + e.getMessage());
+            return false;
         }
-        return false;
     }
+
+
+    public Employee getEmployeeById(int id) {
+        String sql = "SELECT * FROM employee WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Employee emp = new Employee();
+                emp.setId(rs.getInt("id"));
+                emp.setFirst_name(rs.getString("first_name"));
+                emp.setLast_name(rs.getString("last_name"));
+                emp.setEmail(rs.getString("email"));
+                emp.setPhone(rs.getString("phone"));
+                emp.setDepartment(rs.getString("department"));
+                emp.setSalary(rs.getDouble("salary"));
+                emp.setJoining_date(rs.getDate("joining_date"));
+                emp.setStatus(rs.getString("status"));
+                return emp;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching employee by ID: " + e.getMessage());
+        }
+        return null; // if not found
+    }
+
+    public boolean softDeleteEmployee(int id) {
+        String sql = "UPDATE employee SET status = 'Terminated' WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            System.out.println("Error performing soft delete: " + e.getMessage());
+            return false;
+        }
+    }
+
 
 
 
