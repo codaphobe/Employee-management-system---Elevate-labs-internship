@@ -12,7 +12,6 @@ import java.util.Scanner;
 
 /**
  * EmployeeCLI - simple menu-driven console app to perform CRUD on employees.
- * Assumes EmployeeDAO and Employee model already implemented as discussed.
  */
 public class Main {
 
